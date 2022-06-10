@@ -15,6 +15,8 @@ class ViewController: UIViewController {
     let networkService = NetworkService()
     var searchResponce: SearchResponse? = nil
     
+    private var timer: Timer? 
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,16 +60,19 @@ extension ViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         let urlString = "https://itunes.apple.com/search?term=\(searchText)&limit=25"
         
-        networkService.request(urlString: urlString) { result in
-            switch result {
-            case .success(let searchResponce):
-                self.searchResponce = searchResponce
-                DispatchQueue.main.async {
-                    self.table.reloadData()
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { _ in
+            self.networkService.request(urlString: urlString) { result in
+                switch result {
+                case .success(let searchResponce):
+                    self.searchResponce = searchResponce
+                    DispatchQueue.main.async {
+                        self.table.reloadData()
+                    }
+                case .failure(let error):
+                    print("error", error)
                 }
-            case .failure(let error):
-                print("error", error)
             }
-        }
+        })
     }
 }
